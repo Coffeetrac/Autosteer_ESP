@@ -1,6 +1,6 @@
-# AGOpenGPS
+# AG Autosteer ESP
 
-modified Autosteer Sketch
+modified Autosteer Sketch for Agrabot, AGmono
 by Weder
 
 Uses new Hardware:
