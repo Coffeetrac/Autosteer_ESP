@@ -6,6 +6,7 @@ by Weder
 Uses new Hardware:
 Controller: ESP-32 from espressif
 
+coded with Arduino IDE
 
 Supports: WiFi, WiFi AP, Webconfiguration 
 
