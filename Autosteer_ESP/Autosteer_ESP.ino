@@ -101,7 +101,7 @@ struct Storage {
   long steeringPosition = 0, steeringPosition_corr = 0,actualSteerPos=0; //from steering sensor
   float steerAngleError = 0; //setpoint - actual
   float distanceError = 0; //
-  volatile int pulseCount = 0, pulseACount = 0, pulseBCount = 0;; // Steering Wheel Encoder
+  volatile int  pulseACount = 0, pulseBCount = 0;; // Steering Wheel Encoder
 
   
   //IMU, inclinometer variables
@@ -220,17 +220,17 @@ void Steersw_ISR() // handle pin change interrupt for Steersw Pin
  //ISR Steering Wheel Encoder
   void EncoderA_ISR()
   {       
-    #if (SWEncoder)      
+    #if (SWEncoder >=0)      
          pulseACount++; 
-        digitalWrite(led1, !digitalRead(led1));
+         //digitalWrite(led1, !digitalRead(led1));
       
     #endif     
 } 
  //ISR Steering Wheel Encoder
   void EncoderB_ISR()
   {       
-    #if (SWEncoder)      
+    #if (SWEncoder >=0)      
          pulseBCount++; 
-         digitalWrite(led2, !digitalRead(led2));
+         //digitalWrite(led2, !digitalRead(led2));
     #endif     
 } 

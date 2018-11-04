@@ -236,9 +236,13 @@ void process_Request()
     EEPROM.commit();
    }
   if ( action == ACTION_SET_INCL_ZERO) {
-    roll_corr=roll;
-    EEPROM.write(9, (roll_corr>>8) & 0x00FF );
-    EEPROM.write(10,(roll_corr)    & 0x00FF );
+    int roll_avg=0;
+    for (int i=0; i<16; i++){
+      roll_avg+=x_;
+      delay(100);
+    }
+    roll_corr=roll_avg >> 4 ;
+    EEPROM.put( 9, roll_corr);
     EEPROM.commit();
    }
   

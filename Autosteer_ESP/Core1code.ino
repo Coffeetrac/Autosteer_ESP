@@ -54,8 +54,13 @@ void Core1code( void * pvParameters ){
     XeRoll = G * (rollK - Zp) + Xp;
 
     workSwitch = digitalRead(WORKSW_PIN);  // read work switch
+state_previous=steerEnable;    // Debug only
+    if (pulseACount + pulseBCount >= pulseCountMax && pulseACount >0 && pulseBCount >0 && SWEncoder ){
+       steerEnable=false;
+       //watchdogTimer = 20;  // turn off steering
+      }
+if (steerEnable != state_previous) Serial.println("Steer-Break: Encoder.."); // Debug only
     steerSwitch = steerEnable;  //digitalRead(STEERSW_PIN); //read auto steer enable switch open = 0n closed = Off
-    //if (pulseACount + pulseBCount >= pulseCountMax && pulseACount >0 && pulseBCount >0 ) steerSwitch = 0; // from Steeringwheel encoder
     steerSwitch <<= 1; //put steerswitch status in bit 1 position
     switchByte = workSwitch | steerSwitch;
 
@@ -96,7 +101,7 @@ void Core1code( void * pvParameters ){
  else XeRoll=0;
 
    //close enough to center, remove any correction
-   //if (distanceFromLine < 40 && distanceFromLine > -40) steerAngleSetPoint = 0;
+   //if (distanceFromLine < 40 && distanceFromLine  -40) steerAngleSetPoint = 0;
    if (distanceFromLine <= 40 && distanceFromLine >= -40) corr = 0;
    else
     {
@@ -154,6 +159,7 @@ Send_UDP();  //transmit to AOG
    
     display.clear();
     //display_steer_units();
+    //display_encoder_units();
     draw_Sensor();
     display.display();
   
@@ -175,7 +181,7 @@ Send_UDP();  //transmit to AOG
         if (steerEnable != state_previous) Serial.println("Steer-Break: WDT runs out");    // Debug only
       pwmDrive = 0; //turn off steering motor
       motorDrive(); //out to motors the pwm value   
-      pulseACount = pulseBCount = pulseCount=0; //Reset counters if Autosteer is offline    
+      pulseACount = pulseBCount =0; //Reset counters if Autosteer is offline    
     }
   if (toggleSteerEnable==1)
     {
@@ -219,7 +225,7 @@ void udpSteerRecv()
          steerAngleSetPoint = (float)isteerAngleSetPoint * 0.01;  
 
         //auto Steer is off if 32020,Speed is too slow, Wheelencoder above Max
-        if (distanceFromLine == 32020 | speeed < 1 | pulseACount+pulseBCount >= pulseCountMax )
+        if (distanceFromLine == 32020 | speeed < 1 | (pulseACount+pulseBCount >= pulseCountMax && pulseACount>0 && pulseBCount>0))
           { 
             state_previous=steerEnable;    // Debug only
             steerEnable=false;
@@ -300,6 +306,18 @@ void display_steer_units(){
     display.drawString(0, 30,"pValue   :" +String(pValue));
     display.drawString(0, 40,"pwmDrive :" +String(pwmDrive));   
     display.drawString(0, 50,"pwmDrive :" +String(pwmDisplay));
+}
+//--------------------------------------------
+void display_encoder_units(){
+    
+    display.setTextAlignment(TEXT_ALIGN_LEFT);
+    display.setFont(ArialMT_Plain_10);
+    display.drawString(0, 0, "Enc_A : " +String(pulseACount));
+    display.drawString(0, 10,"Enc_B : " +String(pulseBCount));
+    display.drawString(0, 20,"pulsecount: " +String(0));
+    display.drawString(0, 30,"pCountMax: " +String(pulseCountMax));
+    display.drawString(0, 40,"SteerEnable: " +String(steerEnable));   
+    display.drawString(0, 50,"pwmDrive : " +String(pwmDisplay));
 }
 //--------------------------------------------
 void display_start(){
