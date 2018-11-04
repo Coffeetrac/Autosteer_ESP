@@ -10,6 +10,8 @@ coded with Arduino IDE
 
 Supports: WiFi, WiFi AP, Webconfiguration 
 
+and also: BNO055, MMA8452/1, IBT_2, Button, Encoder, 
+
 
 latest Version at: https://github.com/Coffeetrac/Autosteer_ESP
 AGOpenGPS Home:    https://agopengps.jimdosite.com/
