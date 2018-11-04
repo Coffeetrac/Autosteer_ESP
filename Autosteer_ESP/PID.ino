@@ -58,10 +58,10 @@ void motorDrive(void)
 void motorDrive_Cytron(void) 
   {    
     pwmDisplay = pwmDrive;
-    if (pwmDrive >= 0) digitalWrite(DIR_PIN, HIGH);  //set the correct direction
+    if (pwmDrive >= 0) ledcWrite(1, 255);  // channel 1 = DIR_PIN  //set the correct direction
     else   
     {
-      digitalWrite(DIR_PIN, LOW); 
+      ledcWrite(1, 0);  // channel 1 = DIR_PIN 
       pwmDrive = -1 * pwmDrive;  
    }
     ledcWrite(0, pwmDrive);  // channel 0 = PWM_PIN
@@ -111,14 +111,16 @@ void motorDrive_IBT_PWM(void)
   if (pwmDrive > 0)
     {
       ledcWrite(0, pwmDrive);  // channel 0 = PWM_PIN
-      digitalWrite(DIR_PIN, LOW);
+      ledcWrite(1, 0);
+      //digitalWrite(DIR_PIN, LOW);
     }
     
   if (pwmDrive <= 0)
     {
       pwmDrive = -1 * pwmDrive;  
       ledcWrite(1, pwmDrive);  // channel 1 = DIR_PIN
-      digitalWrite(PWM_PIN, LOW);
+      ledcWrite(0, 0);
+      //digitalWrite(PWM_PIN, LOW);
     }
  }  
 
@@ -132,10 +134,16 @@ void motorDrive_IBT_Danfoss(void)
     if (pwmDrive >  250) pwmDrive =  250; 
     if (pwmDrive < -250) pwmDrive = -250;
   
-  if (steerEnable) digitalWrite(DIR_PIN, HIGH); // turn on /off Power
+ /* if (steerEnable) digitalWrite(DIR_PIN, HIGH); // turn on /off Power
   else 
     {
       digitalWrite(DIR_PIN, LOW);  
+      pwmDrive=0;
+    }*/
+  if (steerEnable) ledcWrite(1, 255);  // channel 1 = DIR_PIN // turn on /off Power
+  else 
+    {
+      ledcWrite(1, 0);
       pwmDrive=0;
     }
    
