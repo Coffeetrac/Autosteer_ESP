@@ -284,16 +284,15 @@ void draw_Sensor() {
  
   // draw the progress bar
   display.drawProgressBar(0, 12, 120, 10, progress);
-  display.drawProgressBar(0, 37, 120, 10, XeRoll/16+50);
+  display.drawProgressBar(0, 36, 120, 10, XeRoll/16+50);
 
   // draw the percentage as String
   display.setFont(ArialMT_Plain_10);
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   display.drawString(64, 0, "WAS:  "+String(progress-50) + "%");
-  display.drawString(64, 25, "Roll:  "+String(XeRoll/16) + "°");
-  //display.drawString(64, 26, String(progress-50) + "%");
+  display.drawString(64, 23, "Roll:  "+String(XeRoll/16) + "°");
   display.setFont(ArialMT_Plain_16);
-  display.drawString(64, 48,"Heading: "+ String(Yaw) + "°");
+  display.drawString(64, 46,"Heading: "+ String(Yaw) + "°");
 }
 //--------------------------------------------
 void display_steer_units(){
