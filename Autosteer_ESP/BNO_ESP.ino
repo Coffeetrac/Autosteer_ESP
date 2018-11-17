@@ -214,7 +214,7 @@ void magCalBNO055(float * dest1)
 	Wire.beginTransmission(address);         // Initialize the Tx buffer
 	Wire.write(subAddress);	                 // Put slave register address in Tx buffer
 	Wire.endTransmission(false);             // Send the Tx buffer, but send a restart to keep connection alive
-	retval = Wire.requestFrom(address, 1);            // Read one byte from slave register address 
+	retval = Wire.requestFrom(address, (uint8_t) 1);            // Read one byte from slave register address 
 	_data = Wire.read();                      // Fill Rx buffer with result
 	return _data;                             // Return data read from slave register
 }
