@@ -13,7 +13,7 @@ void readEulData(int16_t * destination)
 }
 
 
-void initBNO055() {
+bool initBNO055() {
     byte c = readByte(BNO055_ADDRESS, BNO055_CHIP_ID);  // Read WHO_AM_I register for BNO055
     if (c != 0xA0) 
      {
