@@ -49,7 +49,8 @@ TaskHandle_t Core2;
 //libraries -------------------------------
 #include "Wire.h"
 #include "Network_AOG.h"
-#include "SSD1306Wire.h"
+#include "SSD1306Wire.h"  // 0.96" OLED
+//#include "SH1106Wire.h" // Alternate 1,3"
 #include "BNO_ESP.h"
 #include "Adafruit_ADS1015.h"
 #include "MMA8452_AOG.h" 
@@ -127,7 +128,8 @@ struct Storage {
 byte state_after=0, state_previous=0, breakreason=0;
 // Instances ------------------------------
 
-SSD1306Wire  display(0x3c, SDA, SCL);  //OLed Display
+SSD1306Wire  display(0x3c, SDA, SCL);  //OLed 0.96" Display
+// SH1106Wire  display(0x3C, SDA, SCL);  //OLed 1.3" Display
 Adafruit_ADS1115 ads;     // Use this for the 16-bit version ADS1115
 MMA8452 accelerometer;
 WiFiServer server(80);
