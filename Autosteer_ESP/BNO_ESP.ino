@@ -14,6 +14,13 @@ void readEulData(int16_t * destination)
 
 
 void initBNO055() {
+    byte c = readByte(BNO055_ADDRESS, BNO055_CHIP_ID);  // Read WHO_AM_I register for BNO055
+    if (c != 0xA0) 
+     {
+       Serial.print("!! IMU Init fails! should be 0xA0, is:");
+       Serial.println(c, HEX);
+       return false; 
+     }
    // Select BNO055 config mode
    writeByte(BNO055_ADDRESS, BNO055_OPR_MODE, CONFIGMODE );
    delay(25);
@@ -43,7 +50,7 @@ void initBNO055() {
    writeByte(BNO055_ADDRESS, BNO055_OPR_MODE, OPRMode );
    Serial.println("BNO055 IMU Init done!");
    delay(25);
-   
+   return true;
 }
 
 void accelgyroCalBNO055(float * dest1, float * dest2) 
