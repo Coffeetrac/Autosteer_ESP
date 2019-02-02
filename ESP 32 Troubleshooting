@@ -14,6 +14,6 @@ https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/windows.
 
 OLED LIBRARY:
 You can find the used SSD1306 in the LibraryManager of the Arduino IDE, it's called:
-
+ESP8266 and ESP32 Oled Driver for SSD1306 display by Daniel Eichhorn, Fabrice Weinberg
 
 GOOD LUCK
