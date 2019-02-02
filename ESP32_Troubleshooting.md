@@ -10,6 +10,7 @@ The easy version with the boardmanager:
 
  https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md
 
+
 and also with the tricky version over gitgui:
 
  https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/windows.md
