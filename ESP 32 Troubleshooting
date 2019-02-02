@@ -9,7 +9,7 @@ The easy version with the boardmanager:
 
 and also with the tricky version over gitgui:
  https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/windows.md
-
+ESP32 Arduino IDE Addon: https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/windows.md
 
 
 OLED LIBRARY:
