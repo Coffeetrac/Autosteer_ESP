@@ -7,9 +7,11 @@ in the file misc.ino, this initiates rewriting the bad EEprom data on first star
 The ESP32 enhancement of the arduino IDE works since 2019 JAN.04 with both Ways:
 
 The easy version with the boardmanager:
+
  https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md
 
 and also with the tricky version over gitgui:
+
  https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/windows.md
 
 
