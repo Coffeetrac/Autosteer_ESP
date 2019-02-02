@@ -4,6 +4,7 @@ Please use 1.8.7 instead, until i find a solution.
 in the file misc.ino, this initiates rewriting the bad EEprom data on first start)
 
 
+
 The ESP32 enhancement of the arduino IDE works since 2019 JAN.04 with both Ways:
 
 The easy version with the boardmanager:
@@ -14,6 +15,8 @@ The easy version with the boardmanager:
 and also with the tricky version over gitgui:
 
  https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/windows.md
+
+
 
 
 OLED LIBRARY:
