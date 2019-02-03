@@ -81,9 +81,11 @@ void EEprom_read_all(){
 //--------------------------------------------------------------
 void EEprom_show_memory(){
 byte c2=0, data_;
-
-  Serial.println(" bytes read from Flash . Values are:");
-  for (int i = 0; i < EEPROM_SIZE; i++)
+int len = sizeof(steerSettings) + 64;
+  Serial.print("Reading ");
+  Serial.print(len);
+  Serial.println(" bytes from Flash . Values are:");
+  for (int i = 0; i < len; i++)
   { 
     data_=byte(EEPROM.read(i));
     if (data_ < 0x10) Serial.print("0");
