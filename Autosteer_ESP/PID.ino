@@ -31,7 +31,7 @@ void calcSteeringPID(void)
 //---------------------------------------------------------------------
 void motorDrive(void) 
 {
-  switch (output_type) {
+  switch (steerSettings.output_type) {
     case 1:
       motorDrive_Cytron();
       break;

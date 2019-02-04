@@ -1,10 +1,15 @@
 TaskHandle_t Core1;
 TaskHandle_t Core2;
-  //##########################################################################################################
+
+ //##########################################################################################################
   //### Setup Zone ###########################################################################################
-  // Just now,  only default values, will be overwritten by the Web config site
+  // Just default values
   //##########################################################################################################
-    
+struct Storage{    
+
+  char ssid[24]      = "yourSSID";          // WiFi network Client name
+  char password[24]  = "YourPassword";      // WiFi network password
+
   byte output_type = 4;       //set to 1  if you want to use Stering Motor + Cytron MD30C Driver
                               //set to 2  if you want to use Stering Motor + IBT 2  Driver
                               //set to 3  if you want to use IBT 2  Driver + PWM 2-Coil Valve
@@ -23,27 +28,44 @@ TaskHandle_t Core2;
          
   byte SWEncoder    = 1;      // Steering Wheel ENCODER Installed
   byte pulseCountMax= 3;      // Switch off Autosteer after x Pulses from Steering wheel encoder 
-  int SteerPosZero=512;
+  
+  int SteerPosZero  = 512;
   //##########################################################################################################
   //### End of Setup Zone ####################################################################################
   //##########################################################################################################
 
+  float Ko = 0.05f;  //overall gain
+  float Kp = 5.0f;  //proportional gain
+  float Ki = 0.001f;//integral gain
+  float Kd = 1.0f;  //derivative gain 
+  float steeringPositionZero = 13000;
+  byte minPWMValue=10;
+  int maxIntegralValue=20;//max PWM value for integral PID component
+  float steerSensorCounts=100;
+  int roll_corr = 0;
+};  Storage steerSettings;
+
+
+
 // IO pins --------------------------------
 #define SDA     21  //I2C Pins
 #define SCL     22
+#define RX1      9  
+#define TX1     10  
+#define RX2     13  
+#define TX2     12 
 
-#define Autosteer_Led  26
-#define PWM_PIN        25
-#define DIR_PIN        32
-#define led1           14
-#define led2           33
+#define Autosteer_Led  25
+#define PWM_PIN        32
+#define DIR_PIN        26
+#define led1           33
+#define led2           14
 #define led3           15
-#define led4           13
 
 #define W_A_S           4
 #define WORKSW_PIN     37   
-#define STEERSW_PIN    35
-#define encAPin        38
+#define STEERSW_PIN    38
+#define encAPin        35
 #define encBPin        34
 
 //libraries -------------------------------
@@ -57,19 +79,8 @@ TaskHandle_t Core2;
 #include "EEPROM.h"
 
 // Variables ------------------------------
-struct Storage {
-    float Ko = 0.05f;  //overall gain
-    float Kp = 5.0f;  //proportional gain
-    float Ki = 0.001f;//integral gain
-    float Kd = 1.0f;  //derivative gain 
-    float steeringPositionZero = 13000;
-    byte minPWMValue=10;
-    int maxIntegralValue=20;//max PWM value for integral PID component
-    float steerSensorCounts=100;
-  };  Storage steerSettings;
-
  //loop time variables in microseconds
-  const unsigned int LOOP_TIME = 50; //10hz 
+  const unsigned int LOOP_TIME = 100; //10hz 
   unsigned int lastTime = LOOP_TIME;
   unsigned int currentTime = LOOP_TIME;
   unsigned int dT = 50000;
@@ -107,7 +118,7 @@ struct Storage {
   
   //IMU, inclinometer variables
   bool imu_initialized=0;
-  int16_t roll = 0, roll_corr=0;
+  int16_t roll = 0;
   uint16_t x_ , y_ , z_;
 
   //pwm variables
@@ -141,13 +152,15 @@ AsyncUDP udp;
 void setup() {
   Wire.begin(SDA, SCL, 400000);
   Serial.begin(115200); 
+  //Serial1.begin(115200, SERIAL_8N1, RX1, TX1);
+  //Serial2.begin(38400,SERIAL_8N1,RX2,TX2); 
+  
   pinMode(Autosteer_Led, OUTPUT);
   pinMode(PWM_PIN, OUTPUT);
   pinMode(DIR_PIN, OUTPUT);
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);
   pinMode(led3, OUTPUT);
-  pinMode(led4, OUTPUT);
   pinMode(WORKSW_PIN, INPUT);
   pinMode(STEERSW_PIN, INPUT);
   pinMode(encAPin, INPUT);
@@ -158,45 +171,32 @@ void setup() {
   toSend[0] = 0x7F;
   toSend[1] = 0xFD;
 
-//------------------------------------------------------------------------------------------------------------  
-  //create a task that will be executed in the Core1code() function, with priority 1 and executed on core 0
-  xTaskCreatePinnedToCore(Core1code, "Core1", 10000, NULL, 1, &Core1, 0);
-  // Core1code,   /* Task function. */
-  // "Core1",     /* name of task. */
-  // 10000,       /* Stack size of task */
-  // NULL,        /* parameter of the task */
-  // 1,           /* priority of the task */
-  // &Core1,      /* Task handle to keep track of created task */
-  // 0);          /* pin task to core 0 */                  */
-  delay(500); 
-
-  //create a task that will be executed in the Core2code() function, with priority 1 and executed on core 1
-  xTaskCreatePinnedToCore(Core2code, "Core2", 10000, NULL, 1, &Core2, 1); 
-  delay(500); 
-//------------------------------------------------------------------------------------------------------------
-
-//Setup Interrupt -Steering Wheel encoder + SteerSwitchbutton
-attachInterrupt(digitalPinToInterrupt(encAPin), EncoderA_ISR, FALLING);
-attachInterrupt(digitalPinToInterrupt(encBPin), EncoderB_ISR, FALLING);
-attachInterrupt(digitalPinToInterrupt(STEERSW_PIN), Steersw_ISR, FALLING);
-
-if (input_type==0)  SteerPosZero =2048;                //Starting Point with ESP ADC 2048 
-if (input_type >0 && input_type < 3 )  SteerPosZero =13000;  //with ADS start with 13000  
+  //Setup Interrupt -Steering Wheel encoder + SteerSwitchbutton
+  attachInterrupt(digitalPinToInterrupt(encAPin), EncoderA_ISR, FALLING);
+  attachInterrupt(digitalPinToInterrupt(encBPin), EncoderB_ISR, FALLING);
+  attachInterrupt(digitalPinToInterrupt(STEERSW_PIN), Steersw_ISR, FALLING);
 
   ledcSetup(0,1000,8);  // PWM Output with channel 0, 1kHz, 8-bit resolution (0-255)
   ledcSetup(1,1000,8);  // PWM Output with channel 1, 1kHz, 8-bit resolution (0-255)
   ledcAttachPin(PWM_PIN,0);  // attach PWM PIN to Channel 0
   ledcAttachPin(DIR_PIN,1);  // attach PWM PIN to Channel 1
 
-if (EEprom_empty_check()==1) { //first start?
-    EEprom_write_all();     //write default data
-  }
-if (EEprom_empty_check()==2) { //data available
-    EEprom_read_all();
-  }
-EE_done =1; // 
-EEprom_show_memory();  //
+  if (steerSettings.input_type==0)  steerSettings.SteerPosZero =2048;                //Starting Point with ESP ADC 2048 
+  if (steerSettings.input_type >0 && steerSettings.input_type < 3 )  steerSettings.SteerPosZero =13000;  //with ADS start with 13000  
+  
+  restoreEEprom();
+  
+  //------------------------------------------------------------------------------------------------------------  
+  //create a task that will be executed in the Core1code() function, with priority 1 and executed on core 0
+  xTaskCreatePinnedToCore(Core1code, "Core1", 10000, NULL, 1, &Core1, 0);
+  delay(500); 
+  //create a task that will be executed in the Core2code() function, with priority 1 and executed on core 1
+  xTaskCreatePinnedToCore(Core2code, "Core2", 10000, NULL, 1, &Core2, 1); 
+  delay(500); 
+  //------------------------------------------------------------------------------------------------------------
 }
+  
+
 
 
 void loop() {

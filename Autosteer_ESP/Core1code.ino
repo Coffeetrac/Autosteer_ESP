@@ -19,7 +19,7 @@ void Core1code( void * pvParameters ){
     dT = currentTime - lastTime;
     lastTime = currentTime;
    
- if (IMU_type ==1){   // Initialize the BNO055 if not done
+ if (steerSettings.IMU_type ==1){   // Initialize the BNO055 if not done
    if (imu_initialized==0){
      initBNO055(); 
      imu_initialized=1;
@@ -33,15 +33,15 @@ void Core1code( void * pvParameters ){
    //If connection lost to AgOpenGPS, the watchdog will count up and turn off steering
     if (watchdogTimer++ > 250) watchdogTimer = 20;
 
- if (Inclino_type ==1){
+ if (steerSettings.Inclino_type ==1){
    // MMA8452 (1) Inclinometer
    if (accelerometer.acc_initialized==0){
-    if(!accelerometer.init()) Inclino_type = 0;} // Try to Initialize MMA8452
+    if(!accelerometer.init()) steerSettings.Inclino_type = 0;} // Try to Initialize MMA8452
    accelerometer.getRawData(&x_, &y_, &z_);
    roll=x_; //Conversion uint to int
    if (roll > 8500)  roll =  8500;
    if (roll < -8500) roll = -8500;
-   roll -= roll_corr;  // 
+   roll -= steerSettings.roll_corr;  // 
    rollK = map(roll,-8500,8500,-480,480); //16 counts per degree (good for 0 - +/-30 degrees) 
   }
 
@@ -54,8 +54,8 @@ void Core1code( void * pvParameters ){
     XeRoll = G * (rollK - Zp) + Xp;
 
     workSwitch = digitalRead(WORKSW_PIN);  // read work switch
-state_previous=steerEnable;    // Debug only
-    if (pulseACount + pulseBCount >= pulseCountMax && pulseACount >0 && pulseBCount >0 && SWEncoder ){
+    state_previous=steerEnable;    // Debug only
+    if (pulseACount + pulseBCount >= steerSettings.pulseCountMax && pulseACount >0 && pulseBCount >0 && steerSettings.SWEncoder ){
        steerEnable=false;
        //watchdogTimer = 20;  // turn off steering
       }
@@ -67,7 +67,7 @@ if (steerEnable != state_previous) Serial.println("Steer-Break: Encoder.."); // 
     SetRelays(); //turn on off sections
 
 //steering position and steer angle
-  switch (input_type) {
+  switch (steerSettings.input_type) {
     case 1:  // ADS 1115 single
       steeringPosition = ads.readADC_SingleEnded(0);    delay(1);           //ADS1115 Standard Mode
       steeringPosition += ads.readADC_SingleEnded(0);    delay(1);
@@ -92,12 +92,12 @@ if (steerEnable != state_previous) Serial.println("Steer-Break: Encoder.."); // 
     steeringPosition = ( steeringPosition -steerSettings.steeringPositionZero);   //center the steering position sensor  
     
     //invert position, left must be minus
-    if (Invert_WAS) steeringPosition_corr = - steeringPosition;
+    if (steerSettings.Invert_WAS) steeringPosition_corr = - steeringPosition;
     else steeringPosition_corr = steeringPosition;
     //convert position to steer angle
     steerAngleActual = (float)(steeringPosition_corr) /   steerSettings.steerSensorCounts; 
 
- if (Inclino_type ==1) steerAngleActual = steerAngleActual - (XeRoll * (steerSettings.Kd/800));     // add the roll
+ if (steerSettings.Inclino_type ==1) steerAngleActual = steerAngleActual - (XeRoll * (steerSettings.Kd/800));     // add the roll
  else XeRoll=0;
 
    //close enough to center, remove any correction
@@ -225,7 +225,7 @@ void udpSteerRecv()
          steerAngleSetPoint = (float)isteerAngleSetPoint * 0.01;  
 
         //auto Steer is off if 32020,Speed is too slow, Wheelencoder above Max
-        if (distanceFromLine == 32020 | speeed < 1 | (pulseACount+pulseBCount >= pulseCountMax && pulseACount>0 && pulseBCount>0))
+        if (distanceFromLine == 32020 | speeed < 1 | (pulseACount+pulseBCount >= steerSettings.pulseCountMax && pulseACount>0 && pulseBCount>0))
           { 
             state_previous=steerEnable;    // Debug only
             steerEnable=false;
@@ -263,11 +263,11 @@ void udpSteerRecv()
       steerSettings.Ki = (float)data[3] * 0.001;   // read Ki from AgOpenGPS
       steerSettings.Kd = (float)data[4] * 1.0;   // read Kd from AgOpenGPS
       steerSettings.Ko = (float)data[5] * 0.1;   // read Ko from AgOpenGPS
-      steerSettings.steeringPositionZero = (SteerPosZero-127) + data[6];//read steering zero offset  
+      steerSettings.steeringPositionZero = (steerSettings.SteerPosZero-127) + data[6];//read steering zero offset  
       steerSettings.minPWMValue = data[7]; //read the minimum amount of PWM for instant on
       maxIntegralValue = data[8]*0.1; //
       steerSettings.steerSensorCounts = data[9]; //sent as 10 times the setting displayed in AOG
-      EEPROM.put(64, steerSettings);
+      EEprom_write_all();
       
       for (int i = 0; i < 10; i++) 
        {
@@ -314,7 +314,7 @@ void display_encoder_units(){
     display.drawString(0, 0, "Enc_A : " +String(pulseACount));
     display.drawString(0, 10,"Enc_B : " +String(pulseBCount));
     display.drawString(0, 20,"pulsecount: " +String(0));
-    display.drawString(0, 30,"pCountMax: " +String(pulseCountMax));
+    display.drawString(0, 30,"pCountMax: " +String(steerSettings.pulseCountMax));
     display.drawString(0, 40,"SteerEnable: " +String(steerEnable));   
     display.drawString(0, 50,"pwmDrive : " +String(pwmDisplay));
 }

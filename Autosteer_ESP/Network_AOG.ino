@@ -1,5 +1,3 @@
-//#include <Network_AOG.h>
-
 //---------------------------------------------------------------------
 void WiFi_Start_STA() {
   unsigned long timeout;
@@ -11,7 +9,7 @@ void WiFi_Start_STA() {
     Serial.println("STA Failed to configure");
    }
   
-  WiFi.begin(ssid, password);
+  WiFi.begin(steerSettings.ssid, steerSettings.password);
   timeout = millis() + 12000L;
   while (WiFi.status() != WL_CONNECTED && millis() < timeout) {
     delay(50);
@@ -24,7 +22,7 @@ void WiFi_Start_STA() {
     server.begin();
     my_WiFi_Mode = WIFI_STA;
     Serial.print("WiFi Client successfully connected to : ");
-    Serial.println(ssid);
+    Serial.println(steerSettings.ssid);
     Serial.print("Connected IP - Address : ");
     Serial.println( WiFi.localIP());
    } 
@@ -33,7 +31,6 @@ void WiFi_Start_STA() {
     WiFi.mode(WIFI_OFF);
     Serial.println("WLAN-Client-Connection failed");
    }
-  
 }
 
 //---------------------------------------------------------------------
@@ -56,6 +53,7 @@ void WiFi_Start_AP() {
   Serial.print( " IP address: ");
   Serial.println(myIP);
 }
+
 //---------------------------------------------------------------------
 void UDP_Start()
 {
@@ -177,86 +175,70 @@ void process_Request()
 
     myIndex = Find_End("SSID_MY=", HTML_String);
     if (myIndex >= 0) {
-      for (int i=0;i<24;i++) ssid[i]=0x00;
-      Pick_Text(ssid, &HTML_String[myIndex], 24);
-      exhibit ("SSID  : ", ssid);
-      EEPROM.put(16, ssid);
-      EEPROM.commit(); 
+      for (int i=0;i<24;i++) steerSettings.ssid[i]=0x00;
+      Pick_Text(steerSettings.ssid, &HTML_String[myIndex], 24);
+      exhibit ("SSID  : ", steerSettings.ssid);
     }
 
     myIndex = Find_End("Password_MY=", HTML_String);
     if (myIndex >= 0) {
-      for (int i=0;i<24;i++) password[i]=0x00;
-      Pick_Text(password, &HTML_String[myIndex], 24);
-      exhibit ("Password  : ", password);
-      EEPROM.put(40, password);
-      EEPROM.commit();
+      for (int i=0;i<24;i++) steerSettings.password[i]=0x00;
+      Pick_Text(steerSettings.password, &HTML_String[myIndex], 24);
+      exhibit ("Password  : ", steerSettings.password);
+      EEprom_write_all();
     }
   }
 
 
   if ( action == ACTION_SET_OUTPUT_TYPE) {
-     output_type = Pick_Parameter_Zahl("OUTPUT_TYPE=", HTML_String);
-     EEPROM.write(2, output_type);
-     EEPROM.commit();
+     steerSettings.output_type = Pick_Parameter_Zahl("OUTPUT_TYPE=", HTML_String);
+     EEprom_write_all();
     }
   
   if ( action == ACTION_SET_WAS_TYPE) {
-     input_type = Pick_Parameter_Zahl("INPUT_TYPE=", HTML_String);
-     EEPROM.write(3, input_type);
-     EEPROM.commit();
+     steerSettings.input_type = Pick_Parameter_Zahl("INPUT_TYPE=", HTML_String);
+     EEprom_write_all();
     }
 
   if ( action == ACTION_SET_WAS_ZERO) {
-     SteerPosZero= actualSteerPos; // >zero< Funktion Set Steer Angle to 0
+     steerSettings.SteerPosZero= actualSteerPos; // >zero< Funktion Set Steer Angle to 0
      steerSettings.steeringPositionZero = actualSteerPos;
-     EEPROM.put(11, SteerPosZero);
-     EEPROM.put(64, steerSettings);
-     EEPROM.commit();  
+     EEprom_write_all();
     }
   
   if ( action == ACTION_SET_WAS_INVERT) {
-     Invert_WAS = Pick_Parameter_Zahl("WAS_INVERT=", HTML_String);
-     EEPROM.write(6, Invert_WAS);
-     EEPROM.commit();
+     steerSettings.Invert_WAS = Pick_Parameter_Zahl("WAS_INVERT=", HTML_String);
+     EEprom_write_all();
     }
    
   if ( action == ACTION_SET_IMU_TYPE) 
    {
-    IMU_type = Pick_Parameter_Zahl("IMU_TYPE=", HTML_String);
-    if (!IMU_type) imu_initialized=0;
-    EEPROM.write(4, IMU_type );
-    EEPROM.commit();
+    steerSettings.IMU_type = Pick_Parameter_Zahl("IMU_TYPE=", HTML_String);
+    if (!steerSettings.IMU_type) imu_initialized=0;
+    EEprom_write_all();
    }
+  
   if ( action == ACTION_SET_INCLINO) 
    {
-    Inclino_type = Pick_Parameter_Zahl("INCLINO_TYPE=", HTML_String);
+    steerSettings.Inclino_type = Pick_Parameter_Zahl("INCLINO_TYPE=", HTML_String);
     accelerometer.acc_initialized=0;
-    EEPROM.write(5, Inclino_type);
-    EEPROM.commit();
+    EEprom_write_all();
    }
+  
   if ( action == ACTION_SET_INCL_ZERO) {
     int roll_avg=0;
     for (int i=0; i<16; i++){
       roll_avg+=x_;
       delay(100);
     }
-    roll_corr=roll_avg >> 4 ;
-    EEPROM.put( 9, roll_corr);
-    EEPROM.commit();
+    steerSettings.roll_corr=roll_avg >> 4 ;
+    EEprom_write_all();
    }
   
   if ( action == ACTION_SET_ENCODER) {
-    SWEncoder= Pick_Parameter_Zahl("ENC_TYPE=", HTML_String);
-    if (SWEncoder==1){
-      EEPROM.write(7, 1); //Encoder on
-     }
-    else EEPROM.write(7, 0); // Encoder off
-    
-    pulseCountMax= Pick_Parameter_Zahl("ENC_COUNTS=", HTML_String);
-    EEPROM.write(8, pulseCountMax); // something to do here default=3
-    
-    EEPROM.commit();
+    steerSettings.SWEncoder= Pick_Parameter_Zahl("ENC_TYPE=", HTML_String);
+    steerSettings.pulseCountMax= Pick_Parameter_Zahl("ENC_COUNTS=", HTML_String);
+    EEprom_write_all();
    } 
 }  
    
@@ -292,7 +274,7 @@ void make_HTML01() {
   strcat( HTML_String, "<td><b>Network Name</b></td>");
   strcat( HTML_String, "<td>");
   strcat( HTML_String, "<input type=\"text\" style= \"width:200px\" name=\"SSID_MY\" maxlength=\"22\" Value =\"");
-  strcat( HTML_String, ssid);
+  strcat( HTML_String, steerSettings.ssid);
   strcat( HTML_String, "\"></td>");
   
   strcat( HTML_String, "<td><button style= \"width:100px\" name=\"ACTION\" value=\"");
@@ -304,7 +286,7 @@ void make_HTML01() {
   strcat( HTML_String, "<td><b>Password</b></td>");
   strcat( HTML_String, "<td>");
   strcat( HTML_String, "<input type=\"text\" style= \"width:200px\" name=\"Password_MY\" maxlength=\"22\" Value =\"");
-  strcat( HTML_String, password);
+  strcat( HTML_String, steerSettings.password);
   strcat( HTML_String, "\"></td>");
   strcat( HTML_String, "</tr>");
 
@@ -330,7 +312,7 @@ void make_HTML01() {
     strcat( HTML_String, "\" value=\"");
     strcati( HTML_String, i);
     strcat( HTML_String, "\"");
-    if (output_type == i)strcat( HTML_String, " CHECKED");
+    if (steerSettings.output_type == i)strcat( HTML_String, " CHECKED");
     strcat( HTML_String, "><label for=\"JZ");
     strcati( HTML_String, i);
     strcat( HTML_String, "\">");
@@ -364,7 +346,7 @@ void make_HTML01() {
     strcat( HTML_String, "\" value=\"");
     strcati( HTML_String, i);
     strcat( HTML_String, "\"");
-    if (input_type == i)strcat( HTML_String, " CHECKED");
+    if (steerSettings.input_type == i)strcat( HTML_String, " CHECKED");
     strcat( HTML_String, "><label for=\"JZ");
     strcati( HTML_String, i);
     strcat( HTML_String, "\">");
@@ -406,7 +388,7 @@ void make_HTML01() {
     strcat( HTML_String, "\" value=\"");
     strcati( HTML_String, i);
     strcat( HTML_String, "\"");
-    if (Invert_WAS == i)strcat( HTML_String, " CHECKED");
+    if (steerSettings.Invert_WAS == i)strcat( HTML_String, " CHECKED");
     strcat( HTML_String, "><label for=\"JZ");
     strcati( HTML_String, i);
     strcat( HTML_String, "\">");
@@ -443,7 +425,7 @@ void make_HTML01() {
     strcat( HTML_String, "\" value=\"");
     strcati( HTML_String, i);
     strcat( HTML_String, "\"");
-    if (IMU_type == i)strcat( HTML_String, " CHECKED");
+    if (steerSettings.IMU_type == i)strcat( HTML_String, " CHECKED");
     strcat( HTML_String, "><label for=\"JZ");
     strcati( HTML_String, i);
     strcat( HTML_String, "\">");
@@ -489,7 +471,7 @@ void make_HTML01() {
     strcat( HTML_String, "\" value=\"");
     strcati( HTML_String, i);
     strcat( HTML_String, "\"");
-    if (Inclino_type == i)strcat( HTML_String, " CHECKED");
+    if (steerSettings.Inclino_type == i)strcat( HTML_String, " CHECKED");
     strcat( HTML_String, "><label for=\"JZ");
     strcati( HTML_String, i);
     strcat( HTML_String, "\">");
@@ -543,7 +525,7 @@ for (int i = 0; i < 2; i++) {
     strcat( HTML_String, "\" value=\"");
     strcati( HTML_String, i);
     strcat( HTML_String, "\"");
-    if (SWEncoder == i)strcat( HTML_String, " CHECKED");
+    if (steerSettings.SWEncoder == i)strcat( HTML_String, " CHECKED");
     strcat( HTML_String, "><label for=\"JZ");
     strcati( HTML_String, i);
     strcat( HTML_String, "\">");
@@ -561,7 +543,7 @@ for (int i = 0; i < 2; i++) {
   strcat( HTML_String, "<td><b>Counts to turn off Autosteer</b></td>");
   strcat( HTML_String, "<td>");
   strcat( HTML_String, "<input type=\"text\" style= \"width:200px\" name=\"ENC_COUNTS\" maxlength=\"3\" Value =\"");
-  strcati( HTML_String, pulseCountMax);
+  strcati( HTML_String, steerSettings.pulseCountMax);
   strcat( HTML_String, "\"></td>");
   
   strcat( HTML_String, "<td><button style= \"width:100px\" name=\"ACTION\" value=\"");

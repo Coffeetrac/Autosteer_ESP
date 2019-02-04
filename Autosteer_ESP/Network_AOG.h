@@ -7,10 +7,6 @@
 #include <WiFiClient.h>
 
 
-// WiFi network Client name and password:
-char ssid[24]     = "yourSSID";
-char password[24]  = "YourPassword";
-
 //Accesspoint name and password:
 const char* ssid_ap     = "AG_Autosteer_ESP_Net";
 const char* password_ap = "passport";

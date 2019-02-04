@@ -24,8 +24,24 @@ void SetRelays(void)
 //--------------------------------------------------------------
 #define EEPROM_SIZE 128
 #define EE_ident1 0xDE  // Marker Byte 0 + 1
-#define EE_ident2 0xED
+#define EE_ident2 0xEA
 
+//--------------------------------------------------------------
+//  Restore EEprom Data
+//--------------------------------------------------------------
+void restoreEEprom(){
+  //byte get_state  = digitalRead(restoreDefault_PIN);
+  byte get_state = false;
+  
+  if (EEprom_empty_check()==1 || get_state) { //first start?
+    EEprom_write_all();     //write default data
+   }
+  if (EEprom_empty_check()==2) { //data available
+    EEprom_read_all();
+   }
+  //EEprom_show_memory();  //
+  EE_done =1;   
+}
 
 //--------------------------------------------------------------
 byte EEprom_empty_check(){
@@ -46,42 +62,17 @@ byte EEprom_empty_check(){
 void EEprom_write_all(){
   EEPROM.write(0, EE_ident1);
   EEPROM.write(1, EE_ident2);
-  EEPROM.write(2, output_type);
-  EEPROM.write(3, input_type);
-  EEPROM.write(4, IMU_type );
-  EEPROM.write(5, Inclino_type);
-  EEPROM.write(6, Invert_WAS);
-  EEPROM.write(7, SWEncoder);
-  EEPROM.write(8, pulseCountMax);
-  EEPROM.put( 9, roll_corr);
-  EEPROM.put(11, SteerPosZero); 
-  EEPROM.put(16, ssid);
-  EEPROM.put(40, password);  
-  EEPROM.put(64, steerSettings);
-  //EEPROM.put(xx, 
+  EEPROM.put(4, steerSettings);
   EEPROM.commit();
 }
 //--------------------------------------------------------------
 void EEprom_read_all(){
-  output_type = EEPROM.read(2);
-  input_type  = EEPROM.read(3);
-  IMU_type    = EEPROM.read(4);
-  Inclino_type= EEPROM.read(5);
-  Invert_WAS  = EEPROM.read(6);
-  SWEncoder   = EEPROM.read(7);
-  pulseCountMax= EEPROM.read(8);
-  EEPROM.get(9, roll_corr); //high low bytes
-  EEPROM.get(11, SteerPosZero); 
-  //EEPROM.read(12, 111);
-  //EEPROM.read(13, 111);
-  EEPROM.get(16, ssid);
-  EEPROM.get(40, password);  
-  EEPROM.get(64, steerSettings); 
+    EEPROM.get(4, steerSettings); 
 }
 //--------------------------------------------------------------
 void EEprom_show_memory(){
 byte c2=0, data_;
-int len = sizeof(steerSettings) + 64;
+int len = sizeof(steerSettings);
   Serial.print("Reading ");
   Serial.print(len);
   Serial.println(" bytes from Flash . Values are:");
