@@ -1,11 +1,3 @@
-Currently the Arduino IDE V1.8.8 causes problems writing the EEprom of the ESP.               
-Please use 1.8.7 instead, until i find a solution.
-
-(If you already failed with the 1.8.8 you have to change the EEIdent2 byte a little, maybe from 0xED to 0xEC              
-in the file misc.ino, this initiates rewriting the bad EEprom data on first start)
-
-
-
 The ESP32 enhancement of the arduino IDE works since 2019 JAN.04 with both Ways:
 
 The easy version with the boardmanager:                                                            
