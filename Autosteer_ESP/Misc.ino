@@ -24,7 +24,7 @@ void SetRelays(void)
 //--------------------------------------------------------------
 #define EEPROM_SIZE 128
 #define EE_ident1 0xDE  // Marker Byte 0 + 1
-#define EE_ident2 0xEA
+#define EE_ident2 0xEB
 
 //--------------------------------------------------------------
 //  Restore EEprom Data
