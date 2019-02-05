@@ -10,7 +10,7 @@ struct Storage{
   char ssid[24]      = "yourSSID";          // WiFi network Client name
   char password[24]  = "YourPassword";      // WiFi network password
 
-  byte output_type = 4;       //set to 1  if you want to use Stering Motor + Cytron MD30C Driver
+  byte output_type = 2;       //set to 1  if you want to use Stering Motor + Cytron MD30C Driver
                               //set to 2  if you want to use Stering Motor + IBT 2  Driver
                               //set to 3  if you want to use IBT 2  Driver + PWM 2-Coil Valve
                               //set to 4  if you want to use  IBT 2  Driver + Danfoss Valve PVE A/H/M
@@ -20,13 +20,13 @@ struct Storage{
                               //1 = Single Mode of ADS1115 - Sensor Signal at A0 (ADS)
                               //2 = Differential Mode - Connect Sensor GND to A1, Signal to A0
 
-  byte IMU_type     = 1;      // set to 1 to enable BNO055 IMU
+  byte IMU_type     = 0;      // set to 1 to enable BNO055 IMU
   
-  byte Inclino_type = 1;      // set to 1 if MMA8452 is installed
+  byte Inclino_type = 0;      // set to 1 if MMA8452 is installed
 
   bool Invert_WAS   = 0;      // set to 1 to Change Direction of Wheel Angle Sensor - to + 
          
-  byte SWEncoder    = 1;      // Steering Wheel ENCODER Installed
+  byte SWEncoder    = 0;      // Steering Wheel ENCODER Installed
   byte pulseCountMax= 3;      // Switch off Autosteer after x Pulses from Steering wheel encoder 
   
   int SteerPosZero  = 512;
