@@ -4,9 +4,19 @@ void Core1code( void * pvParameters ){
   Serial.println();
   Serial.print("Task1 running on core ");
   Serial.println(xPortGetCoreID());
- 
-  display_start();  // Greetings
 
+#if (useOLED_Display)
+  display_start();  // Greetings
+#endif
+
+
+while ((my_WiFi_Mode == 0)){   // Waiting for WiFi Access
+   //Serial.print(my_WiFi_Mode);
+   Serial.println(" Waiting for WiFi Access\n");
+   delay(4000);
+ }
+if (my_WiFi_Mode == WIFI_STA) Serial.println("connection to WiFi Network established");
+if (my_WiFi_Mode == WIFI_AP)  Serial.println("WiFi Accesspoint now started");
  
   for(;;){ // MAIN LOOP FOR THIS CORE
     
@@ -156,12 +166,14 @@ Send_UDP();  //transmit to AOG
    //Serial.print(",");
    // Serial.print(IMU.euler.head/16);   //the pwm value to solenoids or motor
    //Serial.println("");
-   
+
+#if (useOLED_Display)
     display.clear();
     //display_steer_units();
     //display_encoder_units();
     draw_Sensor();
     display.display();
+#endif
   
   }  // End of timed loop ------ 
   //delay(10);
@@ -277,6 +289,7 @@ void udpSteerRecv()
        });  // end of onPacket call
 }
 
+#if (useOLED_Display)
 //--------------------------------------------
 void draw_Sensor() {
   int progress=0;
@@ -333,3 +346,4 @@ void display_start(){
     display.display();
     delay(2000);
 }
+#endif

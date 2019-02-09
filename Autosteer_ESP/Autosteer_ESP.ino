@@ -5,8 +5,13 @@ TaskHandle_t Core2;
   //### Setup Zone ###########################################################################################
   // Just default values
   //##########################################################################################################
-struct Storage{    
 
+  #define useOLED_Display 0         // 0 if Oled Display is not connected
+                                    // 1 if Oled Display is connected
+
+  #define timeoutRouter  20         // Time (seconds) to wait for WIFI access, after that own Access Point starts      
+                              
+struct Storage{    
   char ssid[24]      = "yourSSID";          // WiFi network Client name
   char password[24]  = "YourPassword";      // WiFi network password
 
@@ -46,6 +51,24 @@ struct Storage{
 };  Storage steerSettings;
 
 
+//Accesspoint name and password:
+const char* ssid_ap     = "AG_Autosteer_ESP_Net";
+const char* password_ap = "passport";
+
+//static IP
+IPAddress myip(192, 168, 1, 77);   // Autosteer module
+IPAddress gwip(192, 168, 1, 77);   // Gateway & Accesspoint IP
+IPAddress mask(255, 255, 255, 0);
+IPAddress myDNS(8, 8, 8, 8);       //optional
+
+unsigned int portMy  = 5577; //this is port of this module: Autosteer = 5577
+unsigned int portAOG = 8888; // port to listen for AOG
+
+//IP address to send UDP data to:
+IPAddress ipDestination(192, 168, 1, 255);
+unsigned int portDestination = 9999; // Port of AOG that listens
+
+
 
 // IO pins --------------------------------
 #define SDA     21  //I2C Pins
@@ -71,8 +94,10 @@ struct Storage{
 //libraries -------------------------------
 #include "Wire.h"
 #include "Network_AOG.h"
-#include "SSD1306Wire.h"  // 0.96" OLED
-//#include "SH1106Wire.h" // Alternate 1,3"
+#if (useOLED_Display)
+  #include "SSD1306Wire.h"  // 0.96" OLED
+  //#include "SH1106Wire.h" // Alternate 1,3"
+#endif
 #include "BNO_ESP.h"
 #include "Adafruit_ADS1015.h"
 #include "MMA8452_AOG.h" 
@@ -138,9 +163,10 @@ struct Storage{
 // Debug ----------------------------------
 byte state_after=0, state_previous=0, breakreason=0;
 // Instances ------------------------------
-
-SSD1306Wire  display(0x3c, SDA, SCL);  //OLed 0.96" Display
-// SH1106Wire  display(0x3C, SDA, SCL);  //OLed 1.3" Display
+#if (useOLED_Display)
+  SSD1306Wire  display(0x3c, SDA, SCL);  //OLed 0.96" Display
+  //SH1106Wire  display(0x3C, SDA, SCL);  //OLed 1.3" Display
+#endif
 Adafruit_ADS1115 ads;     // Use this for the 16-bit version ADS1115
 MMA8452 accelerometer;
 WiFiServer server(80);

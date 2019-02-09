@@ -6,35 +6,11 @@
 #include <WiFiAP.h>
 #include <WiFiClient.h>
 
-
-//Accesspoint name and password:
-const char* ssid_ap     = "AG_Autosteer_ESP_Net";
-const char* password_ap = "passport";
-
-
-
 //Declarations
 void WiFi_Start_STA(void);
 
 
-//static IP
-IPAddress myip(192, 168, 1, 77);  // Autosteer module
-IPAddress gwip(192, 168, 1, 77);   // Gateway & Accesspoint IP
-IPAddress mask(255, 255, 255, 0);
-IPAddress myDNS(8, 8, 8, 8); //optional
-
-unsigned int portMy = 5577; //this is port of this module: Autosteer = 5577
-unsigned int portAOG = 8888; // port to listen for AOG
-
-//IP address to send UDP data to:
-//const char * ipDestination = "192.168.1.255"; // PC with AOG
-IPAddress ipDestination(192, 168, 1, 255);
-unsigned int portDestination = 9999; // Port of AOG that listens
-
-
-
 // Wifi variables & definitions
-
 #define MAX_PACKAGE_SIZE 2048
 char HTML_String[6000];
 char HTTP_Header[150];
