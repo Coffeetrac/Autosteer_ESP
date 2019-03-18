@@ -17,6 +17,9 @@ while ((my_WiFi_Mode == 0)){   // Waiting for WiFi Access
  }
 if (my_WiFi_Mode == WIFI_STA) Serial.println("connection to WiFi Network established");
 if (my_WiFi_Mode == WIFI_AP)  Serial.println("WiFi Accesspoint now started");
+
+Serial.print("gain of ADS1115: ");
+Serial.println(ads.getGain());
  
   for(;;){ // MAIN LOOP FOR THIS CORE
     
@@ -63,7 +66,44 @@ if (my_WiFi_Mode == WIFI_AP)  Serial.println("WiFi Accesspoint now started");
     Zp = Xp;
     XeRoll = G * (rollK - Zp) + Xp;
 
-    workSwitch = digitalRead(WORKSW_PIN);  // read work switch
+    switch (steerSettings.WorkSW_mode)
+  {
+  case 1:
+    if (steerSettings.Invert_WorkSW == 0) workSwitch = digitalRead(WORKSW_PIN);    // read digital work switch
+    if (steerSettings.Invert_WorkSW == 1) workSwitch = !digitalRead(WORKSW_PIN);    // read digital work switch
+    break;
+  case 2:
+    AnalogValue = analogRead(WORKSW_PIN);
+    delay(1);
+    AnalogValue += analogRead(WORKSW_PIN);
+    delay(1);
+    AnalogValue += analogRead(WORKSW_PIN);
+    delay(1);
+    AnalogValue += analogRead(WORKSW_PIN);
+    AnalogValue = AnalogValue >> 2;
+    if (steerSettings.Invert_WorkSW == 0){
+      if (AnalogValue < steerSettings.WorkSW_Threshold)   workSwitch = 1;
+      else workSwitch = 0;
+     }
+    
+    if (steerSettings.Invert_WorkSW == 1){
+      if (AnalogValue > steerSettings.WorkSW_Threshold)   workSwitch = 1;
+      else workSwitch = 0; 
+     }
+    break;
+  }
+  
+  if (workSwitch != workSwitchOld) {
+    if (workSwitch > 0) {
+      Serial.println("workswitch: ON");
+      workSwitchOld = workSwitch;
+    }
+    else {
+      Serial.println("workSwitch: OFF");
+      workSwitchOld = workSwitch;
+    }
+  }
+
     state_previous=steerEnable;    // Debug only
     if (pulseACount + pulseBCount >= steerSettings.pulseCountMax && pulseACount >0 && pulseBCount >0 && steerSettings.SWEncoder ){
        steerEnable=false;
@@ -178,6 +218,20 @@ Send_UDP();  //transmit to AOG
   }  // End of timed loop ------ 
   //delay(10);
 
+  switch (steerSettings.SteerSwitchType)
+  { 
+  case 0: 
+    steerEnable = digitalRead(STEERSW_PIN);
+    break;
+  case 1:
+    steerEnable != digitalRead(STEERSW_PIN);
+    break;
+  case 3:
+    byte tempvalue = analogRead(STEERSW_PIN);
+    if (tempvalue < 800) { steerEnable = false; }
+    if (tempvalue > 3200) { steerEnable = true; }
+    break;
+  } 
   
   if (watchdogTimer < 18 )
     {   
@@ -266,6 +320,7 @@ void udpSteerRecv()
       Serial.print(",");
       Serial.println(XeRoll);
        */
+      UDP_data_time = millis();
        }
 
     //autosteer settings packet

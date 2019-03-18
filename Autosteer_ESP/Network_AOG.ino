@@ -11,9 +11,25 @@ void WiFi_Start_STA() {
   
   WiFi.begin(steerSettings.ssid, steerSettings.password);
   timeout = millis() + (timeoutRouter * 1000);
+  LED_WIFI_time = millis();
   while (WiFi.status() != WL_CONNECTED && millis() < timeout) {
     delay(50);
     Serial.print(".");
+    //WIFI LED blink in double time while connecting
+    if (!LED_WIFI_ON) {
+      if (millis() > (LED_WIFI_time + (LED_WIFI_pause >> 2))) {
+        LED_WIFI_time = millis();
+        LED_WIFI_ON = true;
+        digitalWrite(LED_PIN_WIFI, HIGH);
+       }
+     }
+    if (LED_WIFI_ON) {
+      if (millis() > (LED_WIFI_time + (LED_WIFI_pulse >> 2))) {
+        LED_WIFI_time = millis();
+        LED_WIFI_ON = false;
+        digitalWrite(LED_PIN_WIFI, LOW);
+      }
+    }
   }
   
   Serial.println("");
@@ -239,7 +255,22 @@ void process_Request()
     steerSettings.SWEncoder= Pick_Parameter_Zahl("ENC_TYPE=", HTML_String);
     steerSettings.pulseCountMax= Pick_Parameter_Zahl("ENC_COUNTS=", HTML_String);
     EEprom_write_all();
-   } 
+   }
+  if ( action == ACTION_SET_SWITCHES) {
+   steerSettings.SteerSwitchType= Pick_Parameter_Zahl("SSWITCH_TYPE=", HTML_String);
+   steerSettings.WorkSW_mode    = Pick_Parameter_Zahl("WSWITCH_TYPE=", HTML_String);
+   steerSettings.Invert_WorkSW  = Pick_Parameter_Zahl("IWSWITCH_TYPE=", HTML_String);
+   EEprom_write_all();
+  }
+  if ( action == ACTION_SET_THRESHOLD) {
+    unsigned int WSThres_avg=0;
+    for (int i=0; i<8; i++){
+      WSThres_avg += analogRead(WORKSW_PIN);
+      delay(100);
+    }
+    steerSettings.WorkSW_Threshold= WSThres_avg >> 3;
+    EEprom_write_all();
+   }  
 }  
    
 //---------------------------------------------------------------------
@@ -268,7 +299,7 @@ void make_HTML01() {
   strcat( HTML_String, "If access fails, an accesspoint will be created<br>");
   strcat( HTML_String, "(AG_Autosteer_ESP_Net PW:passport)<br><br>");
   strcat( HTML_String, "<table>");
-  set_colgroup(150, 270, 150, 0, 0);
+  set_colgroup(200, 300, 150, 0, 0);
 
   strcat( HTML_String, "<tr>");
   strcat( HTML_String, "<td><b>Network Name</b></td>");
@@ -301,7 +332,7 @@ void make_HTML01() {
   strcat( HTML_String, "<h2>Output Driver</h2>");
   strcat( HTML_String, "<form>");
   strcat( HTML_String, "<table>");
-  set_colgroup(150, 270, 150, 0, 0);
+  set_colgroup(200, 300, 150, 0, 0);
 
   for (int i = 0; i < 5; i++) {
     strcat( HTML_String, "<tr>");
@@ -335,7 +366,7 @@ void make_HTML01() {
   strcat( HTML_String, "<h2>Wheel Angle Sensor (WAS)</h2>");
   strcat( HTML_String, "<form>");
   strcat( HTML_String, "<table>");
-  set_colgroup(150, 270, 150, 10, 0);
+  set_colgroup(200, 300, 150, 10, 0);
  
   for (int i = 0; i < 3; i++) {
     strcat( HTML_String, "<tr>");
@@ -414,7 +445,7 @@ void make_HTML01() {
   strcat( HTML_String, "<h2>IMU Heading Unit (Compass)</h2>");
   strcat( HTML_String, "<form>");
   strcat( HTML_String, "<table>");
-  set_colgroup(150, 270, 150, 0, 0);
+  set_colgroup(200, 300, 150, 0, 0);
 
   for (int i = 0; i < 2; i++) {
     strcat( HTML_String, "<tr>");
@@ -460,7 +491,7 @@ void make_HTML01() {
   strcat( HTML_String, "<h2>Inclinometer Unit (Roll)</h2>");
   strcat( HTML_String, "<form>");
   strcat( HTML_String, "<table>");
-  set_colgroup(150, 270, 150, 0, 0);
+  set_colgroup(200, 300, 150, 0, 0);
 
   for (int i = 0; i < 2; i++) {
     strcat( HTML_String, "<tr>");
@@ -509,12 +540,96 @@ void make_HTML01() {
   strcat( HTML_String, "</form>");
   strcat( HTML_String, "<br><hr>");
 
+ //-----------------------------------------------------------------------------------------
+  // Steerswitch Type
+  strcat( HTML_String, "<h2>Switch Types</h2>");
+  strcat( HTML_String, "<form>");
+  strcat( HTML_String, "<table>");
+  set_colgroup(200, 300, 150, 0, 0);
+
+  for (int i = 0; i < 5; i++) {
+    strcat( HTML_String, "<tr>");
+    if (i == 0)  strcat( HTML_String, "<td><b>Steerswitch type</b></td>");
+    else strcat( HTML_String, "<td> </td>");
+    strcat( HTML_String, "<td><input type = \"radio\" name=\"SSWITCH_TYPE\" id=\"JZ");
+    strcati( HTML_String, i);
+    strcat( HTML_String, "\" value=\"");
+    strcati( HTML_String, i);
+    strcat( HTML_String, "\"");
+    if (steerSettings.SteerSwitchType == i)strcat( HTML_String, " CHECKED");
+    if ( i == 4) strcat( HTML_String, " disabled");
+    strcat( HTML_String, "><label for=\"JZ");
+    strcati( HTML_String, i);
+    strcat( HTML_String, "\">");
+    strcat( HTML_String, steersw_type_tab[i]);
+    strcat( HTML_String, "</label></td>");
+    if (i == 0){
+      strcat( HTML_String, "<td><button style= \"width:100px\" name=\"ACTION\" value=\"");
+      strcati(HTML_String, ACTION_SET_SWITCHES);
+      strcat( HTML_String, "\">Submit</button></td>");
+      strcat( HTML_String, "</tr>");
+     }
+  }
+  
+  for (int i = 0; i < 4; i++) {
+    strcat( HTML_String, "<tr>");
+    if (i == 0)  strcat( HTML_String, "<td><b>Workswitch type</b></td>");
+    else strcat( HTML_String, "<td> </td>");
+    strcat( HTML_String, "<td><input type = \"radio\" name=\"WSWITCH_TYPE\" id=\"JZ");
+    strcati( HTML_String, i);
+    strcat( HTML_String, "\" value=\"");
+    strcati( HTML_String, i);
+    strcat( HTML_String, "\"");
+    if (steerSettings.WorkSW_mode == i)strcat( HTML_String, " CHECKED");
+    if ( i == 3) strcat( HTML_String, " disabled");
+    strcat( HTML_String, "><label for=\"JZ");
+    strcati( HTML_String, i);
+    strcat( HTML_String, "\">");
+    strcat( HTML_String, worksw_type_tab[i]);
+    strcat( HTML_String, "</label></td>");
+  }
+ 
+  for (int i = 0; i < 2; i++) {
+    strcat( HTML_String, "<tr>");
+    if (i == 0)  strcat( HTML_String, "<td><b>Invert Workswitch</b></td>");
+    else strcat( HTML_String, "<td> </td>");
+    strcat( HTML_String, "<td><input type = \"radio\" name=\"IWSWITCH_TYPE\" id=\"JZ");
+    strcati( HTML_String, i);
+    strcat( HTML_String, "\" value=\"");
+    strcati( HTML_String, i);
+    strcat( HTML_String, "\"");
+    if (steerSettings.Invert_WorkSW == i)strcat( HTML_String, " CHECKED");
+    strcat( HTML_String, "><label for=\"JZ");
+    strcati( HTML_String, i);
+    strcat( HTML_String, "\">");
+    strcat( HTML_String, worksw_invert_tab[i]);
+    strcat( HTML_String, "</label></td>");
+  }  
+  
+  strcat( HTML_String, "<tr>");
+  strcat( HTML_String, "<td><br><font size=\"+1\">Analog Workswitch Threshold value</font></td>");
+  strcat( HTML_String, "<td><divbox align=\"right\"><font size=\"+2\"><b>");
+  strcati(HTML_String, (steerSettings.WorkSW_Threshold));
+  strcat( HTML_String, "</b></font></divbox>0-4095</td>");
+  
+  strcat( HTML_String, "<tr>");  
+  strcat( HTML_String, "<td>Set Threshold</td>");
+  strcat( HTML_String, "<td><button style= \"width:100px\" name=\"ACTION\" value=\"");
+  strcati(HTML_String, ACTION_SET_THRESHOLD);
+  strcat( HTML_String, "\">Use Current</button></td>");
+  strcat( HTML_String, "<td>Set Threshold value to current position</td>");
+
+  
+  strcat( HTML_String, "</table>");
+  strcat( HTML_String, "</form>");
+  strcat( HTML_String, "<br><hr>");
+
 //-----------------------------------------------------------------------------------------
 // Steering Wheel Encoder
   strcat( HTML_String, "<h2>Steering Wheel Encoder</h2>");
   strcat( HTML_String, "<form>");
   strcat( HTML_String, "<table>");
-  set_colgroup(150, 270, 150, 0, 0);
+  set_colgroup(200, 300, 150, 0, 0);
 
 for (int i = 0; i < 2; i++) {
     strcat( HTML_String, "<tr>");

@@ -12,7 +12,7 @@ void WiFi_Start_STA(void);
 
 // Wifi variables & definitions
 #define MAX_PACKAGE_SIZE 2048
-char HTML_String[6000];
+char HTML_String[8000];
 char HTTP_Header[150];
 
 byte my_WiFi_Mode = 0;  // WIFI_STA = 1 = Workstation  WIFI_AP = 2  = Accesspoint
@@ -30,6 +30,8 @@ int Aufruf_Zaehler = 0;
 #define ACTION_SET_INCLINO     7
 #define ACTION_SET_INCL_ZERO   8
 #define ACTION_SET_ENCODER     9
+#define ACTION_SET_SWITCHES    10
+#define ACTION_SET_THRESHOLD   11
 
 int action;
 
@@ -47,6 +49,15 @@ char imu_type_tab[2][10] = {"None", "BNO 055"};
 
 // Radiobutton Inclinometer
 char inclino_type_tab[2][10] = {"None", "MMA 8452"};
+
+// Radiobutton Steerswitch
+char steersw_type_tab[5][15] = {"Switch High", "Switch Low", "Toggle Button", "Analog Buttons",""};
+
+// Radiobutton Workswitch
+char worksw_type_tab[4][8] = {"None", "Digital", "Analog", ""};
+
+// Radiobutton WorkSwitch Invert
+char worksw_invert_tab[2][15] = {"not inverted", "inverted"};
 
 // Radiobutton Encoder
 char encoder_type_tab[2][11] = {"None", "Installed"};
