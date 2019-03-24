@@ -8,7 +8,7 @@ TaskHandle_t Core2;
   #define useOLED_Display 0         // 0 if Oled Display is not connected
                                     // 1 if Oled Display is connected
                   
-  #define timeoutRouter  20         // Time (seconds) to wait for WIFI access, after that own Access Point starts      
+  #define timeoutRouter  65         // Time (seconds) to wait for WIFI access, after that own Access Point starts      
                               
 struct Storage{    
   char ssid[24]      = "yourSSID";          // WiFi network Client name
@@ -37,11 +37,11 @@ struct Storage{
   byte SteerSwitchType = 2;   //0 = enable = switch high (3,3V) //1 = enable = switch low(GND) //2 = toggle = button to low(GND)
                               //3 = enable = button to high (3,3V), disable = button to low (GND), neutral = 1,65V
   
-  byte WorkSW_mode = 2;       // 0 = disabled   // 1 = digital ON/OFF // 2 = analog Value 0...4095 (0 - 3,3V)
+  byte WorkSW_mode = 1;       // 0 = disabled   // 1 = digital ON/OFF // 2 = analog Value 0...4095 (0 - 3,3V)
   
   byte Invert_WorkSW = 0;     // 0 = Hitch raised -> High    // 1 = Hitch raised -> Low
   
-  unsigned int WorkSW_Threshold = 200;    // Value for analog hitch level to switch workswitch  
+  unsigned int WorkSW_Threshold = 1200;    // Value for analog hitch level to switch workswitch  
   //##########################################################################################################
   //### End of Setup Zone ####################################################################################
   //##########################################################################################################
@@ -57,7 +57,7 @@ struct Storage{
 
 //Accesspoint name and password:
 const char* ssid_ap     = "AG_Autosteer_ESP_Net";
-const char* password_ap = "passport";
+const char* password_ap = "";
 
 //static IP
 IPAddress myip(192, 168, 1, 77);   // Autosteer module
