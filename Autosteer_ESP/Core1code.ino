@@ -224,7 +224,7 @@ Send_UDP();  //transmit to AOG
     steerEnable = digitalRead(STEERSW_PIN);
     break;
   case 1:
-    steerEnable != digitalRead(STEERSW_PIN);
+    steerEnable = !digitalRead(STEERSW_PIN);
     break;
   case 3:
     byte tempvalue = analogRead(STEERSW_PIN);
